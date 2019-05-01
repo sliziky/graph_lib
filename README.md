@@ -8,8 +8,9 @@ added very soon
 
 ## Usage
 
-Include ```GraphI.h```
-``` 
+Include 
+```c++
+GraphI.h 
 Graph<int> graph;
 graph.add_vertex(4);
 graph.add_vertex(3);
