@@ -2,56 +2,132 @@
 #include "../graph_library/Graph.h"
 
 template < typename Container, typename T >
-bool map_contains( const Container & graph,
-			   const T& item ) {
+bool map_contains( const Container& graph,
+				   const T& item ) {
 	auto it = graph.find( item );
 	return it != graph.end();
 }
 
 template < typename Container, typename T >
-bool edge_exists( const Container& map,const T& from,
-				  const T& to) {
-	auto it = 
-	return std::find( vec.begin(), vec.end(), item ) != vec.end();
+bool edge_exists( const Container& map, const T& from,
+				  const T& to ) {
+	auto it = map.find( from );
+	auto it2 = map.find( to );
+	if ( it == map.end() || it2 == map.end() ) return false;
+	return std::find_if( it->second.begin(), it->second.end(), [&]( const auto& pair ) { return pair.first == to; } ) != it->second.end();
 }
 
 
-TEST(GraphTest, AddVertex) {
+TEST( GraphTest, AddVertex ) {
 	Graph<int> graph {};
-	graph.add_vertex( 2 );
-	graph.add_vertex( 2 );
-	graph.add_vertex( 2 );
-	graph.add_vertex( 3 );
-	graph.add_vertex( 6 );
-	auto graph_map = graph.graph();
-	EXPECT_TRUE( map_contains( graph_map, 2) );
-	EXPECT_TRUE( map_contains( graph_map, 3 ) );
-	EXPECT_TRUE( map_contains( graph_map, 6 ) );
-	EXPECT_FALSE( map_contains( graph_map, 0 ) );
-	EXPECT_FALSE( map_contains( graph_map, 1 ) );
+
+	std::vector<bool> vertices = { 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0 };
+	for ( int i = 0; i < vertices.size(); ++i ) {
+		if ( vertices[ i ] ) {
+			graph.add_vertex( i );
+		}
+	}
+	for ( int i = 0; i < vertices.size(); ++i ) {
+		if ( vertices[ i ] ) {
+			EXPECT_TRUE( map_contains( graph.graph(), i ) );
+		}
+		else {
+			EXPECT_FALSE( map_contains( graph.graph(), i ) );
+		}
+	}
+	EXPECT_EQ( graph.size(), 6 );
 }
 //
-//TEST( GraphTest, AddEdge ) {
-//	Graph<int> graph {};
-//	graph.add_vertex( 2 );
-//	graph.add_vertex( 2 );
-//	graph.add_vertex( 2 );
-//	graph.add_vertex( 3 );
-//	graph.add_vertex( 6 );
-//	EXPECT_FALSE( vec_contains( graph._graph.at( 2 ), 1 ) );
-//	graph.add_edge( 2, 3 );
-//	EXPECT_TRUE( vec_contains( graph._graph.at( 2 ), 3 ) );
-//	graph.add_edge( 8, 3 ); // vertex 8 does not exist
-//	graph.add_edge( 2, 1 ); // vertex 1 does not exist
-//	graph.add_edge( 2, 9 ); // same here
-//	EXPECT_FALSE( vec_contains( graph._graph.at( 2 ), 1 ) );
-//	EXPECT_THROW( vec_contains( graph._graph.at( 8 ), 1 ), std::out_of_range );
-//	EXPECT_FALSE( vec_contains( graph._graph.at( 2 ), 9 ) );
-//
-//
-//
-//
-//
-//}
+TEST( GraphTest, AddEdge ) {
+	Graph<int> graph {};
+	std::vector<int> vertices { 1, 2, 3, 4, 5, 6, 7, 8 };
+	for ( const auto& v : vertices ) graph.add_vertex( v );
 
+	std::vector<std::pair<int, int>> edges = {
+		{1, 2}, 
+		{2, 4}, {2, 3}, {2,1},
+		{4, 1}, 
+		{5, 2}, 
+		{8, 4}
+	};
+	for ( const auto& pair : edges ) {
+		graph.add_edge( pair.first, pair.second );
+	}
 
+	for ( int i = 0; i < vertices.size() + 1; ++i ) {
+		for ( int j = 0; j < vertices.size() + 1; ++j ) {
+			auto e = std::make_pair( i, j);
+			if ( std::find( edges.begin(), edges.end(), e ) != edges.end() ) {
+				EXPECT_TRUE( edge_exists( graph.graph(), i, j ) );
+			}
+			else {
+				EXPECT_FALSE( edge_exists( graph.graph(), i, j ) );
+			}
+		}
+	}
+	EXPECT_EQ( graph.size(), 8 );
+}
+
+TEST( GraphTest, RemoveVertex ) {
+	Graph<int> graph {};
+	std::vector<int> vertices { 1, 2, 3, 4, 5, 6, 7, 8 };
+	for ( const auto& v : vertices ) graph.add_vertex( v );
+
+	std::vector<std::pair<int, int>> edges = {
+		{1, 2},
+		{2, 4}, {2, 3}, {2,1},
+		{4, 1},
+		{5, 2},
+		{8, 4}
+	};
+	for ( const auto& pair : edges ) {
+		graph.add_edge( pair.first, pair.second );
+	}
+	EXPECT_EQ( graph.size(), 8 );
+	graph.remove_vertex( 2 );
+	EXPECT_EQ( graph.size(), 7 );
+	EXPECT_TRUE(map_contains(graph.graph(), 1));
+	EXPECT_FALSE( map_contains( graph.graph(), 2 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 3 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 4 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 5 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 6 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 7 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 8 ) );
+
+	EXPECT_FALSE( edge_exists( graph.graph(), 5, 2 ) );
+	EXPECT_FALSE( edge_exists( graph.graph(), 1, 2 ) );
+	EXPECT_FALSE( edge_exists( graph.graph(), 2, 4 ) );
+
+}
+
+TEST( GraphTest, removeEdge ) {
+	Graph<int> graph {};
+	std::vector<int> vertices { 1, 2, 3, 4, 5, 6, 7, 8 };
+	for ( const auto& v : vertices ) graph.add_vertex( v );
+
+	std::vector<std::pair<int, int>> edges = {
+		{1, 2},
+		{2, 4}, {2, 3}, {2,1},
+		{4, 1},
+		{5, 2},
+		{8, 4}
+	};
+	for ( const auto& pair : edges ) {
+		graph.add_edge( pair.first, pair.second );
+	}
+	graph.remove_edge( 2, 4 );
+	EXPECT_TRUE( map_contains( graph.graph(), 1 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 2 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 3 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 4 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 5 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 6 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 7 ) );
+	EXPECT_TRUE( map_contains( graph.graph(), 8 ) );
+
+	EXPECT_TRUE( edge_exists( graph.graph(), 5, 2 ) );
+	EXPECT_TRUE( edge_exists( graph.graph(), 1, 2 ) );
+	EXPECT_FALSE( edge_exists( graph.graph(), 2, 4 ) );
+	EXPECT_EQ( graph.size(), 8 );
+}
