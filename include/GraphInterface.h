@@ -33,7 +33,7 @@ public:
 		// if exists then add else do nothing
 		_graph[ vertex ] = {};
 		++_size;
-	}
+	} 
 	virtual void add_edge( const T& from,
 			       const T& to,
 			      int cost = -1 ) {
