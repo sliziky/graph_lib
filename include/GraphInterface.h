@@ -58,7 +58,7 @@ public:
 		_graph.erase( vertex );
 		--_size;
 		// remove all edges going TO vertex
-		for ( auto& v : _graph ) {
+		for ( auto& v : _graph ) { 
 			auto it = std::find_if( v.second.begin(),
 									v.second.end(),
 									[&vertex]( const auto& v )
