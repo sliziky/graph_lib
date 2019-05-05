@@ -34,10 +34,9 @@ public:
 	virtual void add_vertex( const T& vertex ) {
 		// if exists then add else do nothing
 		_graph[ vertex ];
-	}
 	virtual void add_edge( const T& from,
-						   const T& to,
-						   int cost = -1 ) {
+			       const T& to,
+			      int cost = -1 ) {
 		// if vertices does NOT exist return
 		auto it = _graph.find( from );
 		if ( it == _graph.end() ) return;
@@ -51,6 +50,8 @@ public:
 		auto it_exists = std::find_if( neighbours.begin(),
 									   neighbours.end(),
 									   [&to]( Vertex<T>& vertex ) { return vertex.getKey() == to; } );
+						neighbours.end(),
+						[&to]( const Vertex& vertex ) { return vertex.getKey() == to; } );
 		// if edge already exists
 		if ( it_exists != neighbours.end() ) return;
 		neighbours.emplace_back( to, color::w, cost );
@@ -63,7 +64,6 @@ public:
 		// remove all edges going TO vertex
 		for ( auto& v : _graph ) {
 			v.second.remove_if( [&]( const auto& ver ) { return ver.getKey() == vertex; } );
-		}
 	}
 	virtual void remove_edge( const T& from, const T& to ) {
 		auto it = _graph.find( from );
@@ -71,7 +71,6 @@ public:
 
 		auto &edges = it->second;
 		edges.remove_if( [&]( const auto& ver ) { return ver.getKey() == to; } );
-
 	}
 
 
