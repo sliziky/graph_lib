@@ -5,9 +5,12 @@
 #include <set>
 #include "GraphInterface.h"
 template < typename T >
-class Graph : public GraphI<T>{
+class Graph : public Adjacency_list<T>{
 public:
 
 };
 
+template < typename T >
+class GraphMat : public Adjacency_matrix {
 
+};
