@@ -24,9 +24,9 @@ struct Vertex {
 template < typename T >
 class Adjacency_list {
 public:
-	using adj_list = std::map<Vertex<T>, std::list<Vertex<T>> >;
+	using adjacency_list = std::map<Vertex<T>, std::list<Vertex<T>> >;
 	using type = T;
-	using bfs_adj_list = void;
+	using adj_list = void;
 
 	Adjacency_list() = default;
 	virtual ~Adjacency_list() = default;
@@ -34,6 +34,7 @@ public:
 	virtual void add_vertex( const T& vertex ) {
 		// if exists then add else do nothing
 		_graph[ vertex ];
+	}
 	virtual void add_edge( const T& from,
 			       const T& to,
 			      int cost = -1 ) {
@@ -50,8 +51,7 @@ public:
 		auto it_exists = std::find_if( neighbours.begin(),
 									   neighbours.end(),
 									   [&to]( Vertex<T>& vertex ) { return vertex.getKey() == to; } );
-						neighbours.end(),
-						[&to]( const Vertex& vertex ) { return vertex.getKey() == to; } );
+			
 		// if edge already exists
 		if ( it_exists != neighbours.end() ) return;
 		neighbours.emplace_back( to, color::w, cost );
@@ -65,6 +65,7 @@ public:
 		for ( auto& v : _graph ) {
 			v.second.remove_if( [&]( const auto& ver ) { return ver.getKey() == vertex; } );
 	}
+	}
 	virtual void remove_edge( const T& from, const T& to ) {
 		auto it = _graph.find( from );
 		if ( it == _graph.end() ) return;
@@ -74,16 +75,17 @@ public:
 	}
 
 
-	const adj_list& graph() const { return _graph; }
+	const adjacency_list& graph() const { return _graph; }
+	adjacency_list& graph() { return _graph; }
 	unsigned size() const { return _graph.size(); }
 private:
-	adj_list _graph;
+	adjacency_list _graph;
 };
 
 class Adjacency_matrix {
 public:
 	using adj_matrix = std::vector<std::vector< int >>;
-	using bfs_adj_mat = void;
+	using adj_mat = void;
 	Adjacency_matrix( int size )
 		: _graph( size, std::vector<int>(size, -1) ) 
 		, _size(size)
