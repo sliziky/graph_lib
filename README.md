@@ -11,11 +11,11 @@ graph representations - ```Adjacency_list```, ```Adjacency_matrix```
 Adjacency_list<int> graph;
 graph.add_vertices({0,1,2,3,4});
 graph.add_edges({
-		         {0,1}, {0,2},
-	             {1,2},
-			     {2,0}, {2,3},
-		         {3,3} 
-			     });
+		 {0,1}, {0,2},
+	         {1,2},
+	  	 {2,0}, {2,3},
+		 {3,3} 
+		});
 dfs(graph, 2);
 
 >>> 2 0 1 3
