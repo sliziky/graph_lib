@@ -25,7 +25,7 @@
 template < typename Graph >
 typename 
 Graph::adj_list bfs( const Graph& graph, 
-	 				 Vertex< typename Graph::type > root ) {
+	 	     		 Vertex< typename Graph::type > root ) {
 	if constexpr ( std::is_integral_v< typename Graph::type > ) {
 		std::vector< int > visited ( graph.size(), 0 );
 		bfs_util( graph, root.getKey(), visited );
