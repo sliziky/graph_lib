@@ -2,19 +2,33 @@
 
 Simple C++ graph library.
 
-So far includes Graph Interface, functions such as BFS, DFS etc are about to be
-added very soon
+Includes ```Breadth-First Search```, ```Depth-First Search``` for included
+graph representations - ```Adjacency_list```, ```Adjacency_matrix```
 
 
 ## Usage
-
-Include 
 ```c++
-GraphI.h 
-Graph<int> graph;
-graph.add_vertex(4);
-graph.add_vertex(3);
-graph.add_edge(3, 4, 2); // adds edge from 3 to 4 with cost 2
-BFS(graph, 3); // starts BFS from vertex 3
-```
+Adjacency_list<int> graph;
+graph.add_vertices({0,1,2,3,4});
+graph.add_edges({
+		         {0,1}, {0,2},
+	             {1,2},
+			     {2,0}, {2,3},
+		         {3,3} 
+			     });
+dfs(graph, 2);
 
+>>> 2 0 1 3
+
+Adjacency_matrix graph2( 5 );
+graph2.insert_edge( 0, 1 );
+graph2.insert_edge( 0, 2 );
+graph2.insert_edge( 1, 2 );
+graph2.insert_edge( 2, 0 );
+graph2.insert_edge( 2, 3 );
+graph2.insert_edge( 3, 3 );
+
+bfs( graph2, 2 );
+
+>>> 2 0 3 1
+```
