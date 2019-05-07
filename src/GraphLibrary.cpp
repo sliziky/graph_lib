@@ -6,64 +6,149 @@
 #include <queue>
 #include <set>
 #include <sstream>
-#include "../Graph.h"
-#include "../GraphInterface.h"
-#include "../colors.h"
+#include <type_traits>
+#include "../include/Graph.h"
+#include "../include/GraphInterface.h"
+#include "../include/colors.h"
 
-template < typename T >
-void print_vec( const std::vector<T>& vec ) {
-	for ( const auto& x : vec ) std::cout << x << " ";
-	std::cout << std::endl;
-}
-
-
+/**
+ * Runs BFS for given Adjacency List Graph from given vertex
+ *
+ * If Graph::type is int, then in order to reach
+ * O(V+E) time complexity we use std::vector
+ * for storing visited vertices, std::set otherwise 
+ *
+ * @tparam Graph the type of graph
+ * @param graph a given Adj_list graph
+ * @param root a vertex to start BFS from
+ */
 template < typename Graph >
-typename Graph::adj_list bfs( const Graph& graph, const Vertex< typename Graph::type >& root ) {
-	std::queue<Vertex < typename Graph::type >> queue {};
-	queue.push( root );
-	auto neighbours = graph.graph();
-	while ( !queue.empty() ) {
-		auto node = queue.front();
-		std::cout << node.getKey() << std::endl;
-		queue.pop();
-		for ( auto& n : neighbours[ node.getKey() ] ) {
-			if ( n.getColor() == color::w ) {
-				n.setColor( color::g );
-				queue.push( Vertex(n) );
-			}
-			node.setColor( color::b );
-		}
+typename 
+Graph::adj_list bfs( const Graph& graph, 
+	 				 Vertex< typename Graph::type > root ) {
+	if constexpr ( std::is_integral_v< typename Graph::type > ) {
+		std::vector< int > visited ( graph.size(), 0 );
+		bfs_util( graph, root.getKey(), visited );
+	}
+	else {
+		std::set< typename Graph::type > visited;
+		bfs_util( graph, root, visited );
 	}
 }
 
+
 template < typename Graph >
-typename Graph::adj_mat bfs( const Graph& graph, int vertex ) {
-	std::queue<int> queue {};
+typename
+Graph::adj_list bfs_util( const Graph& graph,
+						  const Vertex<int>& vertex,
+						  std::vector<int>& visited )
+{
+	std::queue< Vertex<int> > queue;
 	queue.push( vertex );
-	std::vector<bool> visited( graph.size() );
-	visited[ vertex ] = true;
-	auto matrix = graph.graph();
+	visited[ vertex.getKey() ] = 1;
 	while ( !queue.empty() ) {
-		auto node = queue.front();
-		std::cout << node << "\n";
+		auto& v = queue.front();
+		std::cout << v.getKey() << std::endl;
+		const auto& neighbours = graph.graph().at( v );
 		queue.pop();
-		for ( unsigned i = 0; i < matrix[ node ].size(); ++i ) {
-			if ( matrix[ node ][ i ] == 1 && !visited[ i ]) {
-				visited[ i ] = true;
-				queue.push( i );
+		for ( const auto& neighbour : neighbours ) {
+			const int key = neighbour.getKey();
+			if (visited[ key ] == 0)
+			{
+				visited[ key ] = 1;
+				queue.push( neighbour );
 			}
 		}
 	}
 }
 
+template < typename Graph >
+typename
+Graph::adj_list bfs_util( const Graph& graph,
+						  const Vertex< typename Graph::type >& vertex,
+						  std::set< typename Graph::type >& visited ) {
+
+	std::queue< typename Graph::type > queue {};
+	auto key = vertex.getKey();
+	queue.push( key );
+	visited.insert( key );
+	while ( !queue.empty() ) {
+		auto& v = queue.front();
+		std::cout << v << std::endl;
+		const auto& neighbours = graph.graph().at( v );
+		queue.pop();
+		for ( const auto& n : neighbours ) {
+			const auto& key = n.getKey();
+			if ( visited.find( key ) == visited.end()) {
+				visited.insert( key );
+				queue.push( key );
+			}
+		}
+	}
+}
+
+
+/**
+ * Runs BFS for given Matrix Graph from given vertex
+ * 
+ * @tparam Graph the type of graph
+ * @param graph a given graph of type Adj_mat
+ * @param vertex a vertex to start BFS from
+ */
+template < typename Graph >
+typename
+Graph::adj_mat bfs( const Graph& graph, int vertex )
+{
+	std::vector< int > visited( graph.size(), 0 );
+	std::queue<int> queue;
+	queue.push( vertex );
+	visited[ vertex ] = 1;
+	while ( !queue.empty() ){
+		auto v = queue.front();
+		std::cout << v << std::endl;
+		queue.pop();
+		const auto& neighbours = graph.graph()[ v ];
+		for ( int i = 0; i < graph.size(); ++i ) {
+			if ( neighbours[ i ] == 1 && visited[ i ] == 0) {
+				queue.push( i );
+				visited[ i ] = 1;
+			}
+		}
+	}
+}
+
+
+
+/**
+ * Runs DFS for given Graph from given vertex
+ *
+ * If Graph::type is int, then in order to reach
+ * O(V+E) time complexity we use std::vector
+ * for storing visited vertices, std::set otherwise 
+ *
+ * @tparam Graph the type of graph
+ * @param graph a given graph - Adj_list or Adj_mat
+ * @param root a vertex to start DFS from
+ */
 template < typename Graph >
 typename 
 Graph::adj_list dfs( const Graph& graph, 
-							 Vertex< typename Graph::type > root ) {
-	std::set< Graph::type > visited;
+					 Vertex< typename Graph::type > root ) {
+
+	if ( graph.empty() ) { std::cout << "Empty graph \n"; return; }
 	std::ostringstream os;
-	os << "Adj_list DFS ";
-	dfs_util( graph, root, visited, os);
+
+	// for int type
+	if constexpr ( std::is_integral_v< typename Graph::type > ) {
+		std::vector< int > visited( graph.size(), 0 );
+		dfs_util( graph, root, visited, os );
+	}
+	// for other types
+	else { 
+		std::set< typename Graph::type > visited;
+		dfs_util( graph, root, visited, os );
+	}
+
 	std::cout << os.str();
 }
 
@@ -74,13 +159,32 @@ Graph::adj_list dfs_util( const Graph& graph,
 						  std::set< typename Graph::type >& visited,
 						  std::ostringstream& os) {
 
-
-	visited.insert(vertex.getKey());
-	const auto& neighbours = graph.graph().at(vertex.getKey());
+	visited.insert( vertex.getKey() );
+	const auto& neighbours = graph.graph().at( vertex.getKey() );
 	os << vertex.getKey() << " ";
-	for ( const auto& v : neighbours  ) {
-		if ( visited.find(v.getKey()) == visited.end()) {
-			dfs_util( graph, v, visited, os );
+	for ( const auto& neighbour : neighbours  ) {
+		if ( visited.find( neighbour.getKey() ) == visited.end()) {
+			dfs_util( graph, neighbour, visited, os );
+		}
+	}
+}
+
+
+// specialized for int vertices
+template < typename Graph >
+typename
+Graph::adj_list dfs_util( const Graph& graph,
+						  const Vertex< int >& vertex,
+						  std::vector< int >& visited,
+						  std::ostringstream& os ) {
+
+	int key = vertex.getKey();
+	visited[ key ] = 1;
+	const auto& neighbours = graph.graph().at( key );
+	os << key << " ";
+	for ( const auto& neighbour : neighbours ) {
+		if ( visited[ neighbour.getKey() ] == 0 ) {
+			dfs_util( graph, neighbour, visited, os );
 		}
 	}
 }
@@ -90,7 +194,7 @@ typename
 Graph::adj_mat dfs( const Graph& graph,
                     int root )
 {
-	std::set< int > visited;
+	std::vector< int > visited ( graph.size(), 0 );
 	dfs_util( graph, root, visited );
 }
 
@@ -98,44 +202,34 @@ template < typename Graph >
 typename
 Graph::adj_mat dfs_util( const Graph& graph,
 						 int vertex,
-						 std::set< int >& visited)
+						 std::vector< int >& visited)
 {
-	visited.insert(vertex);
-	const auto& neighbours = graph.graph()[vertex];
+	visited[ vertex ] = 1;
+	const auto& neighbours = graph.graph()[ vertex ];
 	std::cout << vertex << "\n";
 	for (int i = 0; i < graph.size(); ++i ) {
-		if (neighbours[i] == 1 && visited.find(i) == visited.end() ){
-			dfs_util(graph, i, visited);
+		if (graph.path_exists(vertex, i) && visited[i] == 0 ){
+			dfs_util( graph, i, visited );
 		}
 	}
 }
 
-
-
-template < typename T >
-bool vec_contains( const std::vector<T>& vec, const T& item ) {
-	return std::find( vec.begin(), vec.end(), item ) != vec.end();
-}
-
 int main()
 {
-	Adjacency_list<int> graph;
-	graph.add_verteces({0,1,2,3,4});
+	Adjacency_list<std::string> graph;
+	graph.add_vertices({"A","B","C","D","E"});
 	graph.add_edges({
-					  {0,1}, {0,2},
-					  {1,2},
-					  {2,0}, {2,3},
-					  {3,3} 
+					  {"A","B"}, {"A","C"},
+					  {"B","C"},
+					  {"C","A"}, {"C","D"},
+					  {"D","D"} 
 					});
-	Adjacency_matrix mat( 5 );
-	mat.insert_edge( 0, 1 );
-	mat.insert_edge( 0, 2 );
-	mat.insert_edge( 1, 2 );
-	mat.insert_edge( 2, 0 );
-	mat.insert_edge( 2, 3 );
-	mat.insert_edge( 3, 3 );
 
-	dfs( graph, 2 );
+	Adjacency_list<int> g;
+	g.add_vertices({1,2,3,4,5});
+	g.add_edges({{0,1},{0,2},{1,3},{1,5},{2,2},{2,4},{4,5}});
+	
 
+	dfs(g, 0);
 	return 0;
 }
