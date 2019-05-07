@@ -1,9 +1,11 @@
 // graph_library.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#include <algorithm>
 #include <iostream>
 #include <queue>
-#include <algorithm>
+#include <set>
+#include <sstream>
 #include "../Graph.h"
 #include "../GraphInterface.h"
 #include "../colors.h"
@@ -43,7 +45,7 @@ typename Graph::adj_mat bfs( const Graph& graph, int vertex ) {
 	auto matrix = graph.graph();
 	while ( !queue.empty() ) {
 		auto node = queue.front();
-		std::cout << node << std::endl;
+		std::cout << node << "\n";
 		queue.pop();
 		for ( unsigned i = 0; i < matrix[ node ].size(); ++i ) {
 			if ( matrix[ node ][ i ] == 1 && !visited[ i ]) {
@@ -55,23 +57,60 @@ typename Graph::adj_mat bfs( const Graph& graph, int vertex ) {
 }
 
 template < typename Graph >
-typename Graph::adj_list dfs( Graph& graph, 
+typename 
+Graph::adj_list dfs( const Graph& graph, 
 							 Vertex< typename Graph::type > root ) {
-	std::vector<bool> visited (graph.size(), false);
-	dfs_util(graph, root, visited);
+	std::set< Graph::type > visited;
+	std::ostringstream os;
+	os << "Adj_list DFS ";
+	dfs_util( graph, root, visited, os);
+	std::cout << os.str();
 }
+
 template < typename Graph >
-typename Graph::adj_list dfs_util( Graph& graph,
-							  Vertex< typename Graph::type >& root,
-							  std::vector<bool>& visited ) {
-	auto& neighbours = graph.graph();
-	visited[ root.getKey() ] = true;
-	for ( auto& n : neighbours[ root.getKey() ] ) {
-		if ( !visited[ n.getKey() ] ) {
-			dfs_util( graph, n, visited );
+typename 
+Graph::adj_list dfs_util( const Graph& graph,
+						  const Vertex< typename Graph::type >& vertex,
+						  std::set< typename Graph::type >& visited,
+						  std::ostringstream& os) {
+
+
+	visited.insert(vertex.getKey());
+	const auto& neighbours = graph.graph().at(vertex.getKey());
+	os << vertex.getKey() << " ";
+	for ( const auto& v : neighbours  ) {
+		if ( visited.find(v.getKey()) == visited.end()) {
+			dfs_util( graph, v, visited, os );
 		}
 	}
 }
+
+template < typename Graph >
+typename
+Graph::adj_mat dfs( const Graph& graph,
+                    int root )
+{
+	std::set< int > visited;
+	dfs_util( graph, root, visited );
+}
+
+template < typename Graph >
+typename
+Graph::adj_mat dfs_util( const Graph& graph,
+						 int vertex,
+						 std::set< int >& visited)
+{
+	visited.insert(vertex);
+	const auto& neighbours = graph.graph()[vertex];
+	std::cout << vertex << "\n";
+	for (int i = 0; i < graph.size(); ++i ) {
+		if (neighbours[i] == 1 && visited.find(i) == visited.end() ){
+			dfs_util(graph, i, visited);
+		}
+	}
+}
+
+
 
 template < typename T >
 bool vec_contains( const std::vector<T>& vec, const T& item ) {
@@ -81,26 +120,21 @@ bool vec_contains( const std::vector<T>& vec, const T& item ) {
 int main()
 {
 	Adjacency_list<int> graph;
-	graph.add_vertex( 0 );
-	graph.add_vertex( 1 );
-	graph.add_vertex( 2 );
-	graph.add_vertex( 3 );
-	graph.add_vertex( 4 );
-	
-	
-	graph.add_edge( 0, 1 );
-	graph.add_edge( 0, 2 );
-	graph.add_edge( 1, 2 );
-	graph.add_edge( 2, 0 );
-	graph.add_edge( 2, 3 );
-	graph.add_edge( 3, 3 );
-
+	graph.add_verteces({0,1,2,3,4});
+	graph.add_edges({
+					  {0,1}, {0,2},
+					  {1,2},
+					  {2,0}, {2,3},
+					  {3,3} 
+					});
 	Adjacency_matrix mat( 5 );
-	mat.insert_edge( 1, 1 );
-	mat.insert_edge( 1, 3 );
-	mat.insert_edge( 2, 0 );
-	mat.insert_edge( 2, 2 );
+	mat.insert_edge( 0, 1 );
+	mat.insert_edge( 0, 2 );
 	mat.insert_edge( 1, 2 );
+	mat.insert_edge( 2, 0 );
+	mat.insert_edge( 2, 3 );
+	mat.insert_edge( 3, 3 );
+
 	dfs( graph, 2 );
 
 	return 0;

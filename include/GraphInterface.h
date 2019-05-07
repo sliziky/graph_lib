@@ -1,12 +1,13 @@
 #pragma once
 #include <algorithm>
+#include <vector>
 #include "colors.h"
 template < typename T >
 struct Vertex {
-	Vertex( const T& k, color col = color::w, int c = -1 )
+	Vertex( const T& k )
 		: key( k )
-		, color( col )
-		, cost( c ) {}
+		, color( color::w )
+		, cost( -1 ) {}
 
 	int getCost() const { return cost; }
 	const T& getKey() const { return key; }
@@ -29,15 +30,32 @@ public:
 	using adj_list = void;
 
 	Adjacency_list() = default;
+	Adjacency_list(std::initializer_list<T> l) {}
 	virtual ~Adjacency_list() = default;
 
+	virtual void add_vertices( std::initializer_list<T> v ) {
+		for (const auto& i : v) {
+			_graph[i];
+		}
+	}
 	virtual void add_vertex( const T& vertex ) {
 		// if exists then add else do nothing
 		_graph[ vertex ];
 	}
+	virtual void add_edge( const std::pair<T,T>& edge ) {
+		auto& v = _graph[edge.first];
+		v.push_back(edge.second);
+	}
+	
+	virtual void add_edges( const std::vector<std::pair<T, T>> & edges) {
+		for (const auto& v : edges) {
+			add_edge(v);
+		}
+	}
+
 	virtual void add_edge( const T& from,
-			       const T& to,
-			      int cost = -1 ) {
+		    		       const T& to,
+					       int cost = -1 ) {
 		// if vertices does NOT exist return
 		auto it = _graph.find( from );
 		if ( it == _graph.end() ) return;
@@ -54,7 +72,7 @@ public:
 			
 		// if edge already exists
 		if ( it_exists != neighbours.end() ) return;
-		neighbours.emplace_back( to, color::w, cost );
+		neighbours.emplace_back( to );
 	}
 	virtual void remove_vertex( const T& vertex ) {
 		// nothing to be removed
